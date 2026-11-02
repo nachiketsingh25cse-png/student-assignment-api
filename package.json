@@ -1,7 +1,7 @@
 {
-  "name": "backend-tutorial-project",
+  "name": "student-assignment-api",
   "version": "1.0.0",
-  "description": "Backend Web Development Tutorial with Node.js, Express, and MongoDB",
+  "description": "Student Course & Assignment Management REST API with Node.js, Express, and MongoDB",
   "main": "index.js",
   "type": "module",
   "scripts": {

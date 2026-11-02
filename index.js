@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
-import postRoutes from './routes/postRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
 
 // 1. Load environment variables from .env file
 dotenv.config();
@@ -19,21 +19,22 @@ app.use(express.json());
 // 5. Welcome & Health Check Root Route
 app.get('/', (req, res) => {
   res.status(200).json({
-    project: 'Intro to Backend Web Development',
+    project: 'Student Course & Assignment Management API',
+    description: 'RESTful Backend API built with Node.js, Express, and MongoDB',
     status: 'Server is up and running!',
     timestamp: new Date().toISOString(),
     apiEndpoints: {
       auth: [
-        { method: 'POST', path: '/api/users/register', desc: 'Register a new user' },
-        { method: 'POST', path: '/api/users/login', desc: 'Login existing user' },
+        { method: 'POST', path: '/api/users/register', desc: 'Register a new student/instructor' },
+        { method: 'POST', path: '/api/users/login', desc: 'Login with credentials' },
         { method: 'POST', path: '/api/users/logout', desc: 'Logout current user' },
       ],
-      posts: [
-        { method: 'GET', path: '/api/posts', desc: 'Fetch all posts' },
-        { method: 'POST', path: '/api/posts', desc: 'Create a new post' },
-        { method: 'GET', path: '/api/posts/:id', desc: 'Fetch a single post by ID' },
-        { method: 'PUT', path: '/api/posts/:id', desc: 'Update a post by ID' },
-        { method: 'DELETE', path: '/api/posts/:id', desc: 'Delete a post by ID' },
+      assignments: [
+        { method: 'GET', path: '/api/assignments', desc: 'Fetch all assignments (supports ?status=pending, ?subject=...)' },
+        { method: 'POST', path: '/api/assignments', desc: 'Create a new course assignment' },
+        { method: 'GET', path: '/api/assignments/:id', desc: 'Fetch a single assignment by ID' },
+        { method: 'PUT', path: '/api/assignments/:id', desc: 'Update assignment details / status / priority' },
+        { method: 'DELETE', path: '/api/assignments/:id', desc: 'Delete an assignment by ID' },
       ],
     },
   });
@@ -41,7 +42,7 @@ app.get('/', (req, res) => {
 
 // 6. Mount API Route Modules
 app.use('/api/users', userRoutes);
-app.use('/api/posts', postRoutes);
+app.use('/api/assignments', assignmentRoutes);
 
 // 7. 404 Catch-All Handler for undefined routes
 app.use((req, res) => {

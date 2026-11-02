@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 /**
  * User Schema
- * Defines the structure of a User document in MongoDB.
+ * Represents a student or instructor account in MongoDB.
  */
 const userSchema = new mongoose.Schema(
   {
@@ -27,6 +27,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters long'],
+    },
+    role: {
+      type: String,
+      enum: ['student', 'instructor', 'admin'],
+      default: 'student',
+    },
+    course: {
+      type: String,
+      default: 'Computer Science',
+      trim: true,
     },
   },
   {

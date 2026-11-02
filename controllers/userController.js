@@ -2,13 +2,13 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 
 /**
- * @desc    Register a new user
+ * @desc    Register a new student or instructor
  * @route   POST /api/users/register
  * @access  Public
  */
 export const registerUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role, course } = req.body;
 
     // Validate incoming input
     if (!username || !email || !password) {
@@ -31,21 +31,25 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create the new user in MongoDB
+    // Create the new student/instructor in MongoDB
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
+      role: role || 'student',
+      course: course || 'Computer Science',
     });
 
     // Return success response (excluding password)
     return res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: `${newUser.role.charAt(0).toUpperCase() + newUser.role.slice(1)} registered successfully`,
       user: {
         id: newUser._id,
         username: newUser.username,
         email: newUser.email,
+        role: newUser.role,
+        course: newUser.course,
         createdAt: newUser.createdAt,
       },
     });
@@ -101,6 +105,8 @@ export const loginUser = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
+        role: user.role,
+        course: user.course,
       },
     });
   } catch (error) {
@@ -120,7 +126,6 @@ export const loginUser = async (req, res) => {
  */
 export const logoutUser = async (req, res) => {
   try {
-    // In stateless API or session-based API, this signals the client to clear session/token
     return res.status(200).json({
       success: true,
       message: 'User logged out successfully',

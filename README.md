@@ -1,64 +1,73 @@
-# Backend Web Development Tutorial: Node.js, Express & MongoDB
+# Student Course & Assignment Management REST API
 
-> Implementation of the comprehensive beginner tutorial: **"Intro to Backend Web Development – Node.js, Express, MongoDB"** by Shivani (Hack Club / freeCodeCamp).
+> A robust, production-ready RESTful backend built with **Node.js**, **Express.js**, and **MongoDB (Mongoose)**, utilizing the **Model-Route-Controller (MRC)** pattern and secured with **Bcrypt** password hashing.
 
-This project demonstrates a full-stack RESTful backend architecture built from scratch using **Node.js**, **Express.js**, and **MongoDB (Mongoose)**, following the industry-standard **Model-Route-Controller (MRC)** design pattern. It includes user authentication with password hashing (`bcryptjs`) and full CRUD operations for posts, ready for Postman testing and assignment evaluation.
+This project was developed for the **3rd Evaluation Assignment**, adapting core backend web development concepts to create a real-world **Student Course & Assignment Management System**.
 
 ---
 
 ## 📋 Table of Contents
-1. [Project Overview & Architecture](#project-overview--architecture)
-2. [Folder Structure](#folder-structure)
-3. [Prerequisites](#prerequisites)
-4. [Step-by-Step Setup Guide](#step-by-step-setup-guide)
-   - [A. Clone and Install Dependencies](#a-clone-and-install-dependencies)
-   - [B. Setup Online MongoDB Atlas Cluster](#b-setup-online-mongodb-atlas-cluster)
-   - [C. Configure Environment Variables](#c-configure-environment-variables)
+1. [Project Overview & Features](#project-overview--features)
+2. [Architecture (Model-Route-Controller)](#architecture-model-route-controller)
+3. [Folder Structure](#folder-structure)
+4. [Prerequisites](#prerequisites)
+5. [Step-by-Step Setup Guide](#step-by-step-setup-guide)
+   - [A. Installation](#a-installation)
+   - [B. MongoDB Atlas Setup](#b-mongodb-atlas-setup)
+   - [C. Environment Configuration](#c-environment-configuration)
    - [D. Run the Application](#d-run-the-application)
-5. [Database Models](#database-models)
-6. [API Endpoints Reference](#api-endpoints-reference)
-7. [Testing with Postman Desktop App](#testing-with-postman-desktop-app)
-8. [Git & GitHub Submission Guide](#git--github-submission-guide)
-9. [Evaluation & Viva Preparation Notes](#evaluation--viva-preparation-notes)
+6. [Database Models](#database-models)
+7. [API Endpoints Reference](#api-endpoints-reference)
+8. [Testing with Postman Desktop App](#testing-with-postman-desktop-app)
+9. [Git & GitHub Submission Guide](#git--github-submission-guide)
+10. [Evaluation & Viva Preparation Notes](#evaluation--viva-preparation-notes)
 
 ---
 
-## 🏗 Project Overview & Architecture
+## 🎯 Project Overview & Features
 
-This application follows the **Model-Route-Controller (MRC)** pattern:
+In academic environments, students and faculty need a reliable system to track course coursework, deadlines, submission status, and priority levels. This backend provides:
+
+* **🔐 User Authentication**: Register students and instructors with encrypted passwords (`bcryptjs`), log in with credential validation, and manage user roles (`student`, `instructor`, `admin`).
+* **📚 Full Assignment CRUD**:
+  - **Create**: Add new assignments with subject, due date, priority, and description.
+  - **Read**: Fetch all assignments, filter by status (`pending`, `in-progress`, `completed`), or get a specific assignment by its MongoDB ID.
+  - **Update**: Edit assignment details, mark assignments as completed, or reschedule deadlines.
+  - **Delete**: Remove assignments by ID.
+* **🛡 Input Validation & Error Handling**: MongoDB schema validation, email regex validation, friendly 404 responses for invalid IDs, and central error handling.
+
+---
+
+## 🏗 Architecture (Model-Route-Controller)
 
 ```text
-       HTTP Request (e.g. from Postman or Browser)
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │   index.js    │ (Express app, middleware, JSON parser)
-                    └───────┬───────┘
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │    Routes     │ (Maps URL paths & HTTP verbs to controllers)
-                    └───────┬───────┘
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │  Controllers  │ (Business logic, validation, hashing)
-                    └───────┬───────┘
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │    Models     │ (Mongoose Schemas defining DB document structure)
-                    └───────┬───────┘
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │ MongoDB Atlas │ (Cloud NoSQL Database)
-                    └───────────────┘
+       HTTP Request (Postman / Web Client)
+                        │
+                        ▼
+                ┌───────────────┐
+                │   index.js    │ (Express server, JSON parser, middleware)
+                └───────┬───────┘
+                        │
+                        ▼
+                ┌───────────────┐
+                │    Routes     │ (Maps URL paths e.g. /api/assignments to logic)
+                └───────┬───────┘
+                        │
+                        ▼
+                ┌───────────────┐
+                │  Controllers  │ (Business logic, status codes, bcrypt hashing)
+                └───────┬───────┘
+                        │
+                        ▼
+                ┌───────────────┐
+                │    Models     │ (Mongoose Schemas: User & Assignment)
+                └───────┬───────┘
+                        │
+                        ▼
+                ┌───────────────┐
+                │ MongoDB Atlas │ (Cloud NoSQL Database)
+                └───────────────┘
 ```
-
-- **Routes (`/routes`)**: Inspect incoming HTTP methods (`GET`, `POST`, `PUT`, `DELETE`) and URL paths, directing traffic to corresponding controller functions.
-- **Controllers (`/controllers`)**: Contain the core business logic, handle request payloads (`req.body`, `req.params`), interact with Mongoose models, and return HTTP status codes with JSON responses.
-- **Models (`/models`)**: Define the Mongoose schema (fields, data types, validations, timestamps) for MongoDB collections.
 
 ---
 
@@ -67,144 +76,110 @@ This application follows the **Model-Route-Controller (MRC)** pattern:
 ```text
 backend-tutorial-project/
 ├── config/
-│   └── db.js                 # MongoDB connection handler
+│   └── db.js                      # MongoDB connection using Mongoose
 ├── controllers/
-│   ├── postController.js     # CRUD operations logic (Create, Read, Update, Delete)
-│   └── userController.js     # Auth logic (Register, Login, Logout)
+│   ├── assignmentController.js    # Full CRUD controllers for assignments
+│   └── userController.js          # Authentication controllers (Register/Login/Logout)
 ├── models/
-│   ├── Post.js               # Post schema definition
-│   └── User.js               # User schema with validation
+│   ├── Assignment.js              # Assignment schema & validations
+│   └── User.js                    # User schema with role & password encryption
 ├── routes/
-│   ├── postRoutes.js         # /api/posts endpoints
-│   └── userRoutes.js         # /api/users endpoints
-├── .env                      # Local secret variables (git-ignored)
-├── .env.example              # Template for environment variables
-├── .gitignore                # Files excluded from GitHub (node_modules, .env)
-├── index.js                  # Main server entry point
-├── package.json              # Project metadata & dependencies
-├── postman_collection.json   # Ready-to-import Postman collection
-└── README.md                 # Complete project documentation
+│   ├── assignmentRoutes.js        # /api/assignments routing
+│   └── userRoutes.js              # /api/users routing
+├── .env                           # Local secret variables (git-ignored)
+├── .env.example                   # Configuration template for GitHub
+├── .gitignore                     # Excludes node_modules & .env
+├── index.js                       # Main application entry point
+├── package.json                   # Project metadata & dependencies
+├── postman_collection.json        # Pre-configured Postman test collection
+├── test-endpoints.js              # Local verification test script
+└── README.md                      # Documentation & Evaluation guide
 ```
 
 ---
 
 ## ⚙️ Prerequisites
 
-- **Node.js**: v18 or higher (tested on Node v24)
-- **npm**: v9 or higher
-- **Git**: Installed and configured
-- **Postman Desktop App**: For testing APIs
-- **MongoDB Atlas Account**: Free cloud database
+* **Node.js**: v18.x or higher (tested on Node v24)
+* **npm**: v9.x or higher
+* **Git**: Installed
+* **Postman Desktop App**: For API testing
+* **MongoDB Atlas Account**: Free cloud cluster
 
 ---
 
 ## 🚀 Step-by-Step Setup Guide
 
-### A. Clone and Install Dependencies
-
+### A. Installation
 ```bash
-# 1. Navigate to the project directory
+# 1. Navigate to project folder
 cd backend-tutorial-project
 
 # 2. Install dependencies
 npm install
 ```
 
-Key packages installed:
-- `express`: Minimalist web framework for Node.js.
-- `mongoose`: Elegant MongoDB object modeling for Node.js.
-- `dotenv`: Loads environment variables from `.env` file into `process.env`.
-- `bcryptjs`: Secure password hashing algorithm.
-- `nodemon` (devDependencies): Auto-restarts server during code changes.
-
----
-
-### B. Setup Online MongoDB Account and Cluster
-
-Follow these steps to create your free MongoDB cloud database:
-
-1. **Sign Up / Log In**:
-   - Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register) and create a free account.
-2. **Create a Free Cluster**:
-   - Choose the **M0 Free Tier** (Shared).
-   - Select your preferred cloud provider (AWS, Google Cloud, or Azure) and nearest region.
-   - Click **Create Deployment**.
-3. **Set Up Database User Authentication**:
-   - Under **Security** > **Database Access**, click **Add New Database User**.
-   - Choose **Password** authentication.
-   - Enter a **Username** (e.g. `dbAdmin`) and a strong **Password** (note this down!).
-   - Set Built-in Role to **Read and write to any database**.
-   - Click **Add User**.
-4. **Set Up IP Access List (Network Access)**:
-   - Under **Security** > **Network Access**, click **Add IP Address**.
-   - Click **Allow Access from Anywhere** (`0.0.0.0/0`) so you can connect from your laptop and testing environments.
-   - Click **Confirm**.
-5. **Get Connection String**:
-   - Under **Deployment** > **Database**, click **Connect** on your cluster.
-   - Choose **Drivers** (Node.js).
-   - Copy the connection string format:
-     ```text
-     mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-     ```
-
----
-
-### C. Configure Environment Variables
-
-1. Create a `.env` file in the root directory (or copy from `.env.example`):
-   ```bash
-   cp .env.example .env
+### B. MongoDB Atlas Setup
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
+2. Create a free **M0 Cluster** (Shared tier).
+3. Under **Security** > **Database Access**, create a user (e.g. `dbAdmin`) with a password.
+4. Under **Security** > **Network Access**, click **Add IP Address** and select **Allow Access from Anywhere** (`0.0.0.0/0`).
+5. Under **Database** > **Connect**, choose **Drivers (Node.js)** and copy your connection string:
+   ```text
+   mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/?retryWrites=true&w=majority
    ```
-2. Open `.env` and fill in your connection string and desired port:
-   ```env
-   PORT=5000
-   MONGO_URI=mongodb+srv://dbAdmin:yourActualPassword@cluster0.abcde.mongodb.net/backendDB?retryWrites=true&w=majority
-   NODE_ENV=development
-   ```
-   *(Replace `dbAdmin` and `yourActualPassword` with the database credentials created in Step B)*.
 
----
+### C. Environment Configuration
+Create a `.env` file in the root directory (or use `.env.example`):
+```env
+PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.abcde.mongodb.net/assignmentDB?retryWrites=true&w=majority
+NODE_ENV=development
+```
+*(Replace `<username>` and `<password>` with your database user credentials)*.
 
 ### D. Run the Application
-
 ```bash
-# Production mode
-npm start
-
-# Development mode (auto-reload with nodemon)
+# Development mode with nodemon auto-restart:
 npm run dev
-```
 
-When started, your terminal will display:
+# Production mode:
+npm start
+```
+Terminal output:
 ```text
-✅ MongoDB Connected successfully: cluster0-shard-00-00.abcde.mongodb.net
 🚀 Server running on http://localhost:5000
 📖 Open http://localhost:5000 in your browser to view API documentation
+✅ MongoDB Connected successfully: cluster0...
 ```
 
-Open `http://localhost:5000` in your browser to verify the server is live!
+Open `http://localhost:5000` in your browser to see the live API status!
 
 ---
 
 ## 🗄 Database Models
 
 ### 1. User Model (`models/User.js`)
-| Field | Type | Required | Unique | Description |
+| Field | Type | Required | Unique | Validation / Notes |
 |---|---|---|---|---|
 | `username` | String | Yes | No | Minimum 3 characters, trimmed |
-| `email` | String | Yes | Yes | Validated with Regex pattern, lowercase |
-| `password` | String | Yes | No | Minimum 6 characters (stored as bcrypt hash) |
-| `createdAt` | Date | Auto | No | Managed via `{ timestamps: true }` |
-| `updatedAt` | Date | Auto | No | Managed via `{ timestamps: true }` |
+| `email` | String | Yes | Yes | Validated with Email Regex, lowercase |
+| `password` | String | Yes | No | Minimum 6 chars, stored as bcrypt hash |
+| `role` | String | No | No | `student` (default), `instructor`, `admin` |
+| `course` | String | No | No | e.g. `'Computer Science'` |
+| `timestamps` | Date | Auto | No | `createdAt` and `updatedAt` |
 
-### 2. Post Model (`models/Post.js`)
-| Field | Type | Required | Default | Description |
+### 2. Assignment Model (`models/Assignment.js`)
+| Field | Type | Required | Values / Default | Notes |
 |---|---|---|---|---|
-| `title` | String | Yes | - | Title of the post |
-| `content` | String | Yes | - | Text content of the post |
-| `author` | String | No | `'Anonymous'` | Name or username of creator |
-| `createdAt` | Date | Auto | - | Timestamp when created |
-| `updatedAt` | Date | Auto | - | Timestamp when updated |
+| `title` | String | Yes | Min 3 characters | Assignment title |
+| `subject` | String | Yes | - | Subject/course name |
+| `description`| String | Yes | - | Detailed assignment tasks |
+| `dueDate` | Date | Yes | - | Submission deadline |
+| `status` | String | No | `'pending'` | `['pending', 'in-progress', 'completed']` |
+| `priority` | String | No | `'medium'` | `['low', 'medium', 'high']` |
+| `assignedTo` | String | No | `'Student'` | Student name or ID |
+| `timestamps` | Date | Auto | - | `createdAt` and `updatedAt` |
 
 ---
 
@@ -212,158 +187,115 @@ Open `http://localhost:5000` in your browser to verify the server is live!
 
 Base URL: `http://localhost:5000`
 
-### 1. Root & Status
+### 1. Root & Health Check
 | Method | Endpoint | Description | Status Code |
 |---|---|---|---|
 | `GET` | `/` | API status and endpoint directory | `200 OK` |
 
-### 2. Authentication APIs (`/api/users`)
+### 2. User Authentication APIs (`/api/users`)
 | Method | Endpoint | Request Body | Status Code | Description |
 |---|---|---|---|---|
-| `POST` | `/api/users/register` | `{"username", "email", "password"}` | `201 Created` | Hashes password & creates user |
-| `POST` | `/api/users/login` | `{"email", "password"}` | `200 OK` | Verifies credentials with bcrypt |
-| `POST` | `/api/users/logout` | None | `200 OK` | Logs out the user |
+| `POST` | `/api/users/register` | `{"username", "email", "password", "role", "course"}` | `201 Created` | Hashes password & creates user |
+| `POST` | `/api/users/login` | `{"email", "password"}` | `200 OK` | Validates credentials with bcrypt |
+| `POST` | `/api/users/logout` | None | `200 OK` | Logs out the user session |
 
-### 3. Posts CRUD APIs (`/api/posts`)
+### 3. Assignment CRUD APIs (`/api/assignments`)
 | Operation | Method | Endpoint | Request Body | Status Code |
 |---|---|---|---|---|
-| **CREATE** | `POST` | `/api/posts` | `{"title", "content", "author"}` | `201 Created` |
-| **READ (All)** | `GET` | `/api/posts` | None | `200 OK` |
-| **READ (Single)**| `GET` | `/api/posts/:id` | None | `200 OK` / `404 Not Found` |
-| **UPDATE** | `PUT` | `/api/posts/:id` | `{"title", "content", "author"}` | `200 OK` / `404 Not Found` |
-| **DELETE** | `DELETE`| `/api/posts/:id` | None | `200 OK` / `404 Not Found` |
+| **CREATE** | `POST` | `/api/assignments` | `{"title", "subject", "description", "dueDate", "priority", "status", "assignedTo"}` | `201 Created` |
+| **READ (All)** | `GET` | `/api/assignments` | None | `200 OK` |
+| **READ (Filter)**| `GET` | `/api/assignments?status=pending` | None (Query parameter) | `200 OK` |
+| **READ (Single)**| `GET` | `/api/assignments/:id` | None | `200 OK` / `404 Not Found` |
+| **UPDATE** | `PUT` | `/api/assignments/:id` | Fields to update e.g. `{"status": "completed"}` | `200 OK` / `404 Not Found` |
+| **DELETE** | `DELETE`| `/api/assignments/:id` | None | `200 OK` / `404 Not Found` |
 
 ---
 
 ## 🧪 Testing with Postman Desktop App
 
-A pre-configured Postman Collection is included in the project: `postman_collection.json`.
+A pre-configured Postman Collection is included in the project: [`postman_collection.json`](postman_collection.json).
 
-### How to Import & Use in Postman:
+### 1-Click Import into Postman:
 1. Open the **Postman Desktop App**.
 2. Click **Import** (top left).
-3. Drag and drop the `postman_collection.json` file from this project folder.
-4. You will see a collection named **"Backend Tutorial - Express & MongoDB API"** with all requests pre-made.
+3. Select the file: `backend-tutorial-project/postman_collection.json`.
+4. The collection named **"Student Course & Assignment Management API"** will appear in your sidebar.
 
-### Sample Test Sequence:
-
-#### 1. Register a User
-- **Method**: `POST`
-- **URL**: `http://localhost:5000/api/users/register`
-- **Headers**: `Content-Type: application/json`
-- **Body (raw JSON)**:
-  ```json
-  {
-    "username": "nachiket",
-    "email": "nachiket@example.com",
-    "password": "Password123"
-  }
-  ```
-- **Response**: `201 Created` with user details (password is omitted for security).
-
-#### 2. Login
-- **Method**: `POST`
-- **URL**: `http://localhost:5000/api/users/login`
-- **Body**:
-  ```json
-  {
-    "email": "nachiket@example.com",
-    "password": "Password123"
-  }
-  ```
-- **Response**: `200 OK` with `"Login successful"`.
-
-#### 3. Create a Post (CREATE)
-- **Method**: `POST`
-- **URL**: `http://localhost:5000/api/posts`
-- **Body**:
-  ```json
-  {
-    "title": "Getting Started with Node & Express",
-    "content": "This backend tutorial was implemented step-by-step with MongoDB Atlas.",
-    "author": "nachiket"
-  }
-  ```
-- **Response**: `201 Created`. Copy the `_id` field from the response (e.g. `672a8190c12...`).
-
-#### 4. Read All Posts (READ)
-- **Method**: `GET`
-- **URL**: `http://localhost:5000/api/posts`
-- **Response**: `200 OK` with an array of all posts.
-
-#### 5. Read Single Post (READ)
-- **Method**: `GET`
-- **URL**: `http://localhost:5000/api/posts/<PASTE_POST_ID_HERE>`
-- **Response**: `200 OK` with that specific post.
-
-#### 6. Update Post (UPDATE)
-- **Method**: `PUT`
-- **URL**: `http://localhost:5000/api/posts/<PASTE_POST_ID_HERE>`
-- **Body**:
-  ```json
-  {
-    "title": "Updated: Getting Started with Node & Express",
-    "content": "This post content was successfully updated via PUT request."
-  }
-  ```
-- **Response**: `200 OK` with the updated post document.
-
-#### 7. Delete Post (DELETE)
-- **Method**: `DELETE`
-- **URL**: `http://localhost:5000/api/posts/<PASTE_POST_ID_HERE>`
-- **Response**: `200 OK` with `"Post deleted successfully"`.
+### Recommended Testing Sequence:
+1. **Health Check**: Run `GET http://localhost:5000/` -> returns `200 OK`.
+2. **Register**: Send `POST /api/users/register` with student details -> returns `201 Created`.
+3. **Login**: Send `POST /api/users/login` with email and password -> returns `200 OK`.
+4. **Create Assignment**: Send `POST /api/assignments` with:
+   ```json
+   {
+     "title": "Build REST API with Node & Express",
+     "subject": "Web Technologies",
+     "description": "Implement authentication and CRUD operations with MongoDB Atlas.",
+     "dueDate": "2026-11-15T23:59:59.000Z",
+     "priority": "high",
+     "status": "pending",
+     "assignedTo": "Nachiket Singh"
+   }
+   ```
+   Copy the generated `_id` from the response (e.g. `672a81...`).
+5. **Get All Assignments**: Send `GET /api/assignments` -> returns `200 OK` with list.
+6. **Filter by Status**: Send `GET /api/assignments?status=pending` -> returns filtered list.
+7. **Get Single Assignment**: Send `GET /api/assignments/<PASTE_ID_HERE>` -> returns `200 OK`.
+8. **Update Assignment**: Send `PUT /api/assignments/<PASTE_ID_HERE>` with:
+   ```json
+   {
+     "status": "completed",
+     "priority": "medium"
+   }
+   ```
+   -> returns `200 OK` with updated document.
+9. **Delete Assignment**: Send `DELETE /api/assignments/<PASTE_ID_HERE>` -> returns `200 OK` ("Assignment deleted successfully").
 
 ---
 
 ## 🐙 Git & GitHub Submission Guide
 
-Follow these commands to push this project to your GitHub account:
-
 ```bash
-# 1. Initialize git repository (if not already done)
+# 1. Initialize git (if not already done)
 git init
 
 # 2. Stage all files
 git add .
 
-# 3. Create initial commit
-git commit -m "feat: complete Node.js, Express & MongoDB backend tutorial"
+# 3. Commit your changes
+git commit -m "feat: complete student course and assignment management REST API"
 
-# 4. Create a new public repository on GitHub (e.g., named "backend-api-tutorial")
+# 4. Create a new public repository on GitHub (e.g. "student-assignment-api")
 
-# 5. Link local repository to your GitHub remote
-git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/backend-api-tutorial.git
+# 5. Link to your GitHub repository
+git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/student-assignment-api.git
 
-# 6. Set main branch and push
+# 6. Push to main
 git branch -M main
 git push -u origin main
 ```
 
-Your public repo URL for assignment submission will be:
-`https://github.com/<YOUR_GITHUB_USERNAME>/backend-api-tutorial`
-
-> **Note**: Your `.env` file is excluded in `.gitignore` so your personal database credentials will NEVER be pushed to GitHub. Evaluators will use `.env.example` as reference.
+Your public submission link:
+`https://github.com/<YOUR_GITHUB_USERNAME>/student-assignment-api`
 
 ---
 
 ## 🎓 Evaluation & Viva Preparation Notes
 
-Key concepts to explain during your 3rd Evaluation:
+Key answers for your 3rd Evaluation:
 
-1. **What is the Model-Route-Controller (MRC) Pattern?**
-   - **Separation of Concerns**: Routes define the URL endpoints, Controllers contain business logic, and Models represent database entities. This makes the code modular, maintainable, and testable.
-2. **What is Express Middleware?**
-   - A function that has access to the request object (`req`), response object (`res`), and the `next` middleware function in the application’s request-response cycle. For example, `express.json()` parses incoming JSON request bodies into `req.body`.
-3. **Why do we hash passwords with bcrypt?**
-   - Plain-text passwords must never be stored in a database. `bcryptjs` uses a cryptographic salt and slow hashing algorithm (adaptive work factor) to protect passwords against rainbow tables and brute-force attacks.
-4. **What are the common HTTP status codes used?**
-   - `200 OK`: Successful standard request.
-   - `201 Created`: Resource successfully created (used in POST).
-   - `400 Bad Request`: Client sent invalid or missing data.
-   - `401 Unauthorized`: Invalid credentials.
-   - `404 Not Found`: Resource or endpoint doesn't exist.
-   - `500 Internal Server Error`: Unhandled server-side exception.
-5. **How does MongoDB differ from SQL databases?**
-   - MongoDB is a NoSQL document database storing data in flexible, JSON-like BSON documents. It does not require strict table joins or predefined column schemas like MySQL or PostgreSQL, making it ideal for rapid prototyping with JavaScript/JSON.
-6. **What is Mongoose?**
-   - An Object Data Modeling (ODM) library for MongoDB and Node.js that provides schema validation, type casting, middleware hooks, and business logic methods.
+1. **Why Model-Route-Controller (MRC)?**
+   - **Separation of Concerns**: Routes define endpoints, Controllers contain business logic, and Models manage the database schema. This structure ensures modularity, clean debugging, and code reusability.
+2. **Why hash passwords with Bcrypt?**
+   - Plain-text passwords are a major security vulnerability. `bcryptjs` uses cryptographic salting (random bits added to each password) and iterative hashing rounds to make brute-force and rainbow table attacks computationally infeasible.
+3. **What is Express Middleware?**
+   - Functions executed during the request-response lifecycle. For example, `express.json()` intercepts incoming request streams and parses JSON payloads into `req.body`.
+4. **Explain HTTP Status Codes Used**:
+   - `200 OK`: Request succeeded (GET, PUT, DELETE).
+   - `201 Created`: New resource successfully created (POST).
+   - `400 Bad Request`: Missing required fields or schema validation failure.
+   - `401 Unauthorized`: Invalid login credentials.
+   - `404 Not Found`: Resource ID or endpoint does not exist.
+   - `500 Internal Server Error`: Unhandled server exception.
+5. **How does MongoDB differ from SQL?**
+   - MongoDB is a schema-flexible NoSQL document database storing data in JSON/BSON format. It scales horizontally and eliminates the need for complex multi-table joins for nested document structures.
